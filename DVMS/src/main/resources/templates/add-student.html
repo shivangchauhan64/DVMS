@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Students List</title>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	<style>
+		body {
+			display: flex;
+			font-family: Arial, sans-serif;
+			margin: 0;
+			padding: 0;
+			background: #f4f4f4;
+		}
+
+		.sidebar {
+			width: 70px;
+			background: #333;
+			color: white;
+			padding: 20px 10px;
+			height: 100vh;
+			position: fixed;
+			transition: width 0.3s;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		.sidebar:hover {
+			width: 250px;
+		}
+
+		.sidebar ul {
+			list-style: none;
+			padding: 0;
+		}
+
+		.sidebar ul li {
+			padding: 15px;
+			border-bottom: 1px solid #444;
+			display: flex;
+			align-items: center;
+			width: 100%;
+		}
+
+		.sidebar ul li a {
+			color: white;
+			text-decoration: none;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			width: 100%;
+		}
+
+		.sidebar ul li .text {
+			display: none;
+		}
+
+		.sidebar:hover ul li .text {
+			display: inline;
+		}
+
+		.sidebar ul li:hover {
+			background: #575757;
+		}
+
+		.main-content {
+			margin-left: 90px;
+			padding: 20px;
+			width: 100%;
+			transition: margin-left 0.3s;
+		}
+
+		.students-list-container {
+			padding: 20px;
+		}
+
+		.students-list-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+
+		.students-list-title {
+			font-size: 24px;
+			font-weight: bold;
+		}
+
+		.add-students-button {
+			background-color: #673ab7;
+			color: white;
+			padding: 10px 15px;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		.search-filter {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+
+		.search-input {
+			padding: 8px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			width: 200px;
+		}
+
+		.filter-options {
+			display: flex;
+			align-items: center;
+		}
+
+		.filter-options select {
+			padding: 8px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			margin-left: 10px;
+		}
+
+		.student-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-bottom: 20px;
+		}
+
+		.student-table th,
+		.student-table td {
+			padding: 12px 15px;
+			text-align: left;
+			border-bottom: 1px solid #ddd;
+		}
+
+		.student-table th {
+			background-color: #f2f2f2;
+			font-weight: bold;
+		}
+
+		.student-table tr:hover {
+			background-color: #f9f9f9;
+		}
+
+		.overlay {
+			display: none;
+			/* Hidden by default */
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+
+		.form-container {
+			background-color: white;
+			padding: 30px;
+			border-radius: 8px;
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+			width: 400px;
+			height: auto;
+			/* Adjust height as needed */
+			overflow-y: hidden;
+			/* Remove scrollbar */
+			/* Use manual positioning to center */
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		.form-container label {
+			display: block;
+			margin-bottom: 8px;
+			font-weight: bold;
+		}
+
+		.form-container input,
+		.form-container select {
+			/* Apply to both input and select */
+			width: 100%;
+			padding: 10px;
+			margin-bottom: 15px;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			box-sizing: border-box;
+		}
+
+		.form-container button {
+			background-color: #4CAF50;
+			color: white;
+			padding: 12px 20px;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			margin-right: 10px;
+		}
+
+		.form-container button[type="button"] {
+			background-color: #ccc;
+		}
+
+		.close-button {
+			background: none;
+			border: none;
+			padding: 0;
+			cursor: pointer;
+			font-size: 15px;
+			font: inherit;
+			position: relative;
+			left: 360px;
+			/* Adjust as needed */
+			bottom: 30px;
+			color: black;
+			/* Set color to black */
+
+		}
+	</style>
+</head>
+
+<body>
+	<div class="sidebar">
+		<ul>
+			<li><a href="/faculty/dashboard"><span class="material-icons">home</span> <span
+						class="text">Dashboard</span></a>
+			</li>
+			<li><a th:href="@{/faculty/assigned-requests(type='pending')}"><span class="material-icons">receipt</span>
+					<span class="text">Pending Requests</span></a></li>
+			<li><a th:href="@{/faculty/assigned-requests(type='approved')}"><span
+						class="material-icons">check_circle</span>
+					<span class="text">Approved Requests</span></a></li>
+			<li><a th:href="@{/faculty/assigned-requests(type='rejected')}"><span class="material-icons">cancel</span>
+					<span class="text">Cancelled Requests</span></a></li>
+			<li><a href="/faculty/add-student"><span class="material-icons">person_add</span> <span
+						class="text">Students
+						Detail</span></a></li>
+			<li><a href="/logout"><span class="material-icons">logout</span> <span class="text">Logout</span></a></li>
+		</ul>
+	</div>
+	<div class="main-content">
+		<div class="students-list-container">
+			<div class="students-list-header">
+
+				<div class="students-list-title">Students List</div>
+				<button class="add-students-button" onclick="openForm()" style="float: right;">+ Add Students</button>
+			</div>
+			<div class="search-filter">
+				<input type="text" class="search-input" placeholder="Search by name or roll">
+				<div class="filter-options">
+					<span>Last 30 days</span>
+					<select>
+						<option value="all">All Students</option>
+					</select>
+				</div>
+			</div>
+			<table class="student-table">
+				<thead>
+					<tr>
+						<th>Students Name</th>
+						<th>Roll</th>
+						<th>Email</th>
+						<th>Course</th>
+						<th>Year</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody id="studentTableBody">
+					<tr th:each="student : ${students}">
+						<td th:text="${student.name}"></td>
+						<td th:text="${student.rollNumber}"></td>
+						<td th:text="${student.email}"></td>
+						<td th:text="${student.course}"></td>
+						<td th:text="${student.year}"></td>
+						<td>
+							<a href="javascript:void(0);" th:onclick="'openForm('+ ${student.id} +');'">
+								<span class="material-icons">edit</span>
+							</a>
+							<a th:href="@{'/faculty/delete-student/' + ${student.id}}">
+								<span class="material-icons">delete</span>
+							</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="overlay" id="overlay">
+		<div class="form-container">
+			<button type="button" onclick="closeForm()" class="close-button">
+				<span>&times;</span>
+			</button>
+			<form th:action="@{/faculty/save-student}" method="post">
+				<input type="hidden" id="studentId" name="id" th:value="${student?.id}">
+
+				<label for="uniqueId">Unique ID:</label>
+				<input type="text" id="uniqueId" name="uniqueId" th:value="${student?.uniqueId}" required><br>
+
+				<label for="name">Name:</label>
+				<input type="text" id="name" name="name" th:value="${student?.name}" required><br>
+
+				<label for="rollNumber">Roll Number:</label>
+				<input type="text" id="rollNumber" name="rollNumber" th:value="${student?.rollNumber}" required><br>
+
+				<label for="course">Course:</label>
+				<select id="course" name="course" required onchange="updateYearOptions()">
+					<option value="">Select Course</option>
+					<option value="B.Tech" th:selected="${student?.course == 'B.Tech'}">B.Tech</option>
+					<option value="BCA" th:selected="${student?.course == 'BCA'}">BCA</option>
+					<option value="MCA" th:selected="${student?.course == 'MCA'}">MCA</option>
+				</select><br>
+
+				<label for="year">Year:</label>
+				<select id="year" name="year" required>
+					<option value="">Select Year</option>
+					<option th:each="i: ${#numbers.sequence(1, 4)}" th:value="${i}" th:text="${i}"
+						th:selected="${student?.year == i}"></option>
+				</select><br>
+
+				<label for="email">Email:</label>
+				<input type="email" id="email" name="email" th:value="${student?.email}" required><br>
+
+				<button type="submit">Save</button>
+			</form>
+		</div>
+	</div>
+
+	<script>
+		function openForm(studentId = null) {
+			console.log("openForm called with studentId:", studentId);
+			if (studentId) {
+				fetch('/faculty/get-student/' + studentId)
+					.then(response => {
+						console.log("Fetch response:", response);
+						if (!response.ok) {
+							console.error("Fetch failed with status:", response.status);
+							throw new Error('Network response was not ok');
+						}
+						return response.json();
+					})
+					.then(student => {
+						console.log("Student data received:", student);
+						if (student) {
+							console.log("Setting studentId:", student.id);
+							document.getElementById('studentId').value = student.id;
+							console.log("Setting uniqueId:", student.uniqueId);
+							document.getElementById('uniqueId').value = student.uniqueId;
+							console.log("Setting name:", student.name);
+							document.getElementById('name').value = student.name;
+							console.log("Setting rollNumber:", student.rollNumber);
+							document.getElementById('rollNumber').value = student.rollNumber;
+							console.log("Setting email:", student.email);
+							document.getElementById('email').value = student.email;
+							console.log("Setting course:", student.course);
+							document.getElementById('course').value = student.course;
+							setTimeout(() => {
+								console.log("Setting year:", student.year);
+								document.getElementById('year').value = student.year;
+							}, 0);
+							updateYearOptions();
+						} else {
+							console.error("Student data is null or undefined");
+						}
+					})
+					.catch(error => {
+						console.error("Error fetching student data:", error);
+					});
+			} else {
+				// Clear form for adding a new student
+				document.getElementById('studentId').value = '';
+				document.getElementById('uniqueId').value = '';
+				document.getElementById('name').value = '';
+				document.getElementById('rollNumber').value = '';
+				document.getElementById('email').value = '';
+				document.getElementById('course').value = '';
+				document.getElementById('year').value = '';
+			}
+			document.getElementById("overlay").style.display = "block";
+		}
+		function closeForm() {
+			document.getElementById("overlay").style.display = "none";
+		}
+
+		function updateYearOptions() {
+			const courseSelect = document.getElementById('course');
+			const yearSelect = document.getElementById('year');
+			const selectedCourse = courseSelect.value;
+			yearSelect.innerHTML = '<option value="">Select Year</option>';
+
+			if (selectedCourse === 'B.Tech') {
+				yearSelect.add(new Option('1', '1'));
+				yearSelect.add(new Option('2', '2'));
+				yearSelect.add(new Option('3', '3'));
+				yearSelect.add(new Option('4', '4'));
+			} else if (selectedCourse === 'BCA') {
+				yearSelect.add(new Option('1', '1'));
+				yearSelect.add(new Option('2', '2'));
+				yearSelect.add(new Option('3', '3'));
+				yearSelect.add(new Option('4', '4'));
+			} else if (selectedCourse === 'MCA') {
+				yearSelect.add(new Option('1', '1'));
+				yearSelect.add(new Option('2', '2'));
+
+			}
+		}
+	</script>
+</body>
+
+</html>

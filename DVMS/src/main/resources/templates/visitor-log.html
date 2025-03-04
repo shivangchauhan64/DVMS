@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Visitor Log</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center horizontally */
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 90%; /* Increase width for better centering */
+            max-width: 1200px; /* Limit maximum width */
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px auto; /* Center the table itself */
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        td:last-child {
+            text-align: center;
+        }
+
+        .button-container {
+            display: inline-flex; /* Use inline-flex for side-by-side buttons */
+            gap: 5px; /* Adjust gap between buttons */
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button[type="submit"]:first-child {
+            background-color: #28a745; /* Green for Approve */
+            color: white;
+        }
+
+        button[type="submit"]:first-child:hover {
+            background-color: #218838;
+        }
+
+        button[type="submit"]:last-child {
+            background-color: #dc3545; /* Red for Reject */
+            color: white;
+        }
+
+        button[type="submit"]:last-child:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h2>Visitor Log</h2>
+
+    <table>
+        <thead>
+            <tr>
+				<th>Visitor ID</th>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="visitor : ${visitors}">
+				<td th:text="${visitor.visitorId}"></td>
+                <td th:text="${visitor.name}"></td>
+                <td th:text="${visitor.contact}"></td>
+                <td th:text="${visitor.reason}"></td>
+                <td th:text="${visitor.status}"></td>
+                <td>
+                    <div class="button-container">
+                        <form th:action="@{/admin/approve-visitor/{id}(id=${visitor.id})}" method="post">
+                            <button type="submit">Approve</button>
+                        </form>
+                        <form th:action="@{/admin/reject-visitor/{id}(id=${visitor.id})}" method="post">
+                            <button type="submit">Reject</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

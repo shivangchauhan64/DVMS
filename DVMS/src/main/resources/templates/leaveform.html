@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Apply Leave</title>
+</head>
+<body>
+    <form th:action="@{/student/apply-leave}" method="post">
+        <label for="reason">Reason:</label>
+        <input type="text" name="reason" id="reason" placeholder="Reason"><br>
+
+        <label for="startDate">Start Date:</label>
+        <input type="datetime-local" name="startDate" id="startDate"><br>
+
+        <label for="endDate">End Date:</label>
+        <input type="datetime-local" name="endDate" id="endDate"><br>
+
+        <label for="leaveType">Leave Type:</label>
+        <select name="leaveType" id="leaveType" onchange="toggleTimeFields()">
+            <option value="Full Day">Full Day</option>
+            <option value="Half Day">Half Day</option>
+            <option value="Specific Time">Specific Time</option>
+        </select><br>
+
+        <div id="timeFields" style="display: none;">
+            <label for="startTime">Start Time:</label>
+            <input type="time" name="startTime" id="startTime"><br>
+
+            <label for="endTime">End Time:</label>
+            <input type="time" name="endTime" id="endTime"><br>
+        </div>
+
+        <button type="submit">Apply</button>
+    </form>
+
+    <script>
+        function toggleTimeFields() {
+            var leaveType = document.getElementById("leaveType").value;
+            var timeFields = document.getElementById("timeFields");
+
+            if (leaveType === "Specific Time") {
+                timeFields.style.display = "block";
+            } else {
+                timeFields.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

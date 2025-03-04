@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${student.name} + ' Dashboard'"></title>
+</head>
+<body>
+    <h1 th:text="'Welcome, ' + ${student.name}"></h1>
+    <a href="/student/apply-leave">Apply Leave</a>
+    <a href="/student/change-password">Change Password</a>
+
+    <h2>Leave Requests</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Reason</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Leave Type</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="leaveRequest : ${leaveRequests}">
+                <td th:text="${leaveRequest.reason}"></td>
+                <td th:text="${leaveRequest.startDate}"></td>
+                <td th:text="${leaveRequest.endDate}"></td>
+                <td th:text="${leaveRequest.leaveType}"></td>
+                <td th:text="${leaveRequest.status}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

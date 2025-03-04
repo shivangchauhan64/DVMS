@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${type.equalsIgnoreCase('approved') ? 'Approved Requests' : (type.equalsIgnoreCase('rejected') ? 'Cancelled Requests' : 'Pending Requests')}"></title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .action-buttons {
+      display: inline-flex;
+      gap: 5px;
+    }
+
+    .action-buttons button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .action-buttons button.approve {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .action-buttons button.reject {
+      background-color: #f44336;
+      color: white;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 60%;
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <h2 th:text="${type.equalsIgnoreCase('approved') ? 'Approved Requests' : (type.equalsIgnoreCase('rejected') ? 'Cancelled Requests' : 'Pending Requests')}"></h2>
+  <table th:if="${visitors != null and !visitors.isEmpty()}">
+    <thead>
+      <tr th:if="${type.equalsIgnoreCase('pending')}">
+        <th>S. No.</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Contact</th>
+        <th>Reason</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+      <tr th:if="${type.equalsIgnoreCase('approved')}">
+        <th>S. No.</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Contact</th>
+        <th>Reason</th>
+        <th>Approval Time</th>
+      </tr>
+      <tr th:if="${type.equalsIgnoreCase('rejected')}">
+        <th>S. No.</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Contact</th>
+        <th>Reason</th>
+        <th>Cancellation Reason</th>
+        <th>Rejected By</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="visitor, iterStat : ${visitors}" th:id="'visitor-' + ${visitor.id}">
+        <td th:text="${iterStat.index + 1}"></td>
+        <td th:text="${visitor.name}"></td>
+        <td th:text="${visitor.address}"></td>
+        <td th:text="${visitor.contact}"></td>
+        <td th:text="${visitor.reason}"></td>
+        <td th:if="${type.equalsIgnoreCase('pending')}" th:text="${visitor.status}"></td>
+        <td th:if="${type.equalsIgnoreCase('pending')}">
+          <div class="action-buttons" th:if="${visitor.status.equalsIgnoreCase('pending')}">
+            <button type="button" class="approve" th:attr="onclick='updateStatus(\'' + ${visitor.id} + '\', \'approve\')'">Approve</button>
+            <button type="button" class="reject" th:attr="onclick='updateStatus(\'' + ${visitor.id} + '\', \'reject\')'">Reject</button>
+          </div>
+          <span th:unless="${visitor.status.equalsIgnoreCase('pending')}" th:text="${visitor.status}"></span>
+        </td>
+        <td th:if="${type.equalsIgnoreCase('approved')}" th:text="${#temporals.format(visitor.approvalTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+        <td th:if="${type.equalsIgnoreCase('rejected')}" th:text="${visitor.cancellationReason}"></td>
+        <td th:if="${type.equalsIgnoreCase('rejected')}" th:text="${visitor.rejectedBy}"></td>
+      </tr>
+    </tbody>
+  </table>
+  <p th:unless="${visitors != null and !visitors.isEmpty()}">No requests found.</p>
+
+  <div id="cancellationModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Enter cancellation reason:</p>
+      <textarea id="cancellationReasonInput" rows="4" cols="50"></textarea>
+      <button id="confirmCancellation">OK</button>
+      <button id="cancelCancellation">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    function updateStatus(visitorId, action) {
+      let baseUrl = window.location.pathname.startsWith('/director') ? '/director' : '/faculty';
+      if (action === 'reject') {
+        const modal = document.getElementById("cancellationModal");
+        const confirmButton = document.getElementById("confirmCancellation");
+        const cancelButton = document.getElementById("cancelCancellation");
+        const closeButton = document.getElementsByClassName("close")[0];
+        const cancellationInput = document.getElementById("cancellationReasonInput");
+
+        modal.style.display = "block";
+
+        confirmButton.onclick = function() {
+          const cancellationReason = cancellationInput.value;
+          if (cancellationReason) {
+            fetch(`${baseUrl}/${action}/${visitorId}?cancellationReason=${encodeURIComponent(cancellationReason)}`, {
+              method: 'POST'
+            }).then(response => {
+              if (response.ok) {
+                const row = document.getElementById(`visitor-${visitorId}`);
+                if (row) {
+                  row.remove();
+                  renumberRows();
+                }
+              } else {
+                alert("Failed to update status.");
+              }
+            });
+            modal.style.display = "none";
+            cancellationInput.value = "";
+          }
+        };
+
+        cancelButton.onclick = function() {
+          modal.style.display = "none";
+          cancellationInput.value = "";
+        };
+
+        closeButton.onclick = function() {
+          modal.style.display = "none";
+          cancellationInput.value = "";
+        };
+      } else {
+        fetch(`${baseUrl}/${action}/${visitorId}`, {
+          method: 'POST'
+        }).then(response => {
+          if (response.ok) {
+            const row = document.getElementById(`visitor-${visitorId}`);
+            if (row) {
+              row.remove();
+              renumberRows();
+            }
+          } else {
+            alert("Failed to update status.");
+          }
+        });
+      }
+    }
+
+    function renumberRows() {
+      const rows = document.querySelectorAll('table tbody tr');
+      rows.forEach((row, index) => {
+        row.cells[0].textContent = index + 1;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelled Requests</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+		.sidebar {
+		            width: 70px;
+		            background: #333;
+		            color: white;
+		            padding: 20px 10px;
+		            height: 100vh;
+		            position: fixed;
+		            transition: width 0.3s;
+		            overflow: hidden;
+		        }
+		        .sidebar:hover {
+		            width: 250px;
+		        }
+		        .sidebar ul {
+		            list-style: none;
+		            padding: 0;
+		        }
+		        .sidebar ul li {
+		            padding: 15px;
+		            border-bottom: 1px solid #444;
+		            display: flex;
+		            align-items: center;
+		        }
+		        .sidebar ul li a {
+		            color: white;
+		            text-decoration: none;
+		            display: flex;
+		            align-items: center;
+		            gap: 10px;
+		        }
+		        .sidebar ul li .text {
+		            display: none;
+		        }
+		        .sidebar:hover ul li .text {
+		            display: inline;
+		        }
+		        .sidebar ul li:hover {
+		            background: #575757;
+		        }
+        .main-content {
+            margin-left: 90px;
+            padding: 20px;
+            width: 80%;
+            transition: margin-left 0.3s;
+            margin: 20px auto;
+        }
+        .visitor-log-container {
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        .button-container {
+            margin: 20px auto;
+            display: inline-flex;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .button-container a {
+            padding: 10px 20px;
+            text-decoration: none;
+            color: black;
+            background-color: white;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        .button-container a.active {
+            background-color: #3f51b5;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .visitor-info {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .visitor-info strong {
+            font-weight: bold;
+        }
+		.notification-badge {
+				    position: absolute;
+				    top: 1px;
+				    right: -3px;
+				    background-color: red;
+				    color: white;
+				    border-radius: 50%;
+				    padding: 1px 1px;
+				    font-size: 1px;
+					z-index: 2;
+				}
+    </style>
+</head>
+<body>
+
+	<div class="sidebar">
+	        <ul>
+	            <li><a href="/admin/dashboard"><span class="material-icons">home</span> <span class="text">Dashboard</span></a></li>
+	            <li><a href="/admin/visitor-log"><span class="material-icons">receipt</span> <span class="text">Pending Requests</span></a></li>
+				<li><a href="/admin/approved-requests"><span class="material-icons">check_circle</span> <span class="text">Approved Requests</span></a></li>
+				<li><a href="/admin/cancelled-requests"><span class="material-icons">cancel</span> <span class="text">Cancelled Requests</span></a></li>
+	            <li><a href="/admin/add-admin"><span class="material-icons">people</span> <span class="text">Add More Admin</span></a></li>
+	            <li><a href="/admin/change-password"><span class="material-icons">lock</span> <span class="text">Change Password</span></a></li>
+	            <li><a href="/logout"><span class="material-icons">logout</span> <span class="text">Logout</span></a></li>
+	        </ul>
+	    </div>
+
+    <div class="button-container">
+        <a th:href="@{/admin/cancelled-requests(type='rejected')}" th:classappend="${type == 'rejected' ? ' active' : ''}">Rejected</a>
+        <a th:href="@{/admin/cancelled-requests(type='cancelled')}" th:classappend="${type == 'cancelled' ? ' active' : ''}">Cancelled</a>
+        <a th:href="@{/admin/cancelled-requests}" th:classappend="${type == null ? ' active' : ''}">All</a>
+    </div>
+
+    <div class="main-content">
+        <div class="visitor-log-container">
+            <h3>Cancelled Requests</h3>
+
+            <table th:if="${visitors != null and !visitors.isEmpty()}">
+                <thead>
+                    <tr>
+						<th>S. No.</th>
+                        <th>Visitor ID</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Visiting Reason</th>
+						<th>Rejected By</th> 
+						<th>Rejected reason</th>
+                        <th>Registration Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="visitor, iterStat : ${visitors}">
+						<td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${visitor.visitorId}"></td>
+                        <td th:text="${visitor.name}"></td>
+                        <td th:text="${visitor.address}"></td>
+                        <td th:text="${visitor.contact}"></td>
+                        <td th:text="${visitor.reason}"></td>
+						<td th:text="${visitor.rejectedBy}"></td>
+						<td th:text="${visitor.cancellationReason}"></td>
+                        <td th:text="${#temporals.format(visitor.registrationTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p th:if="${visitors == null or visitors.isEmpty()}">No cancelled visitor requests.</p>
+        </div>
+    </div>
+
+</body>
+</html>
